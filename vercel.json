@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "transfer-wire.html", "use": "@vercel/static" },
+    { "src": "api/transfers.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/", "dest": "/transfer-wire.html" },
+    { "src": "/api/transfers", "dest": "/api/transfers.js" }
+  ]
+}
