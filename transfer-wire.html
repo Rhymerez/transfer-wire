@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta name="google-site-verification" content="K7zsHlxO_znqbHYgCXA2AUg2fnupCt1_mzeDqzqrB9E" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Transfer Wire — Summer 2026</title>
@@ -588,7 +589,7 @@ tabButtons.forEach(btn=>{
 showTab('done');
 
 // ---- refresh button: calls your local backend (see transfer-server/) ----
-const BACKEND_URL = "http://localhost:3000/api/transfers";
+const BACKEND_URL = "/api/transfers"; // relative — works locally and once deployed
 const lastUpdatedEl = document.getElementById('lastUpdated');
 const refreshBtn = document.getElementById('refreshBtn');
 
