@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transfer Wire — Summer 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pitch-dark:#0F2A1D;
+    --pitch:#1B4332;
+    --turf:#2D6A4F;
+    --chalk:#F5F3EA;
+    --chalk-dim:#E7E2D2;
+    --ink:#12241C;
+    --stamp-red:#B7302B;
+    --gold:#C9A227;
+    --line:rgba(18,36,28,0.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--chalk);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .display{font-family:'Anton',sans-serif; letter-spacing:0.5px; text-transform:uppercase;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    background:var(--pitch-dark);
+    color:var(--chalk);
+    padding:10px 28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:12px;
+    letter-spacing:0.08em;
+  }
+  .topbar .dot{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--stamp-red); margin-right:7px;
+    box-shadow:0 0 0 0 rgba(183,48,43,.6);
+    animation:pulse 1.8s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(183,48,43,.55);}
+    70%{box-shadow:0 0 0 7px rgba(183,48,43,0);}
+    100%{box-shadow:0 0 0 0 rgba(183,48,43,0);}
+  }
+  .topbar span.window{opacity:0.75;}
+  .refresh-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:transparent;
+    border:1px solid rgba(245,243,234,0.35);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:11.5px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    padding:6px 12px;
+    border-radius:100px;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .refresh-btn:hover{background:rgba(245,243,234,0.1); border-color:var(--gold);}
+  .refresh-btn svg{
+    width:12px; height:12px;
+    transition:transform .5s ease;
+  }
+  .refresh-btn.spinning svg{transform:rotate(360deg);}
+  .last-updated{
+    font-size:11px;
+    color:rgba(245,243,234,0.55);
+    margin-left:12px;
+  }
+
+  /* ---------- ticker ---------- */
+  .ticker-wrap{
+    background:var(--turf);
+    border-top:1px solid rgba(245,243,234,0.15);
+    border-bottom:3px solid var(--gold);
+    overflow:hidden;
+    white-space:nowrap;
+    position:relative;
+  }
+  .ticker-track{
+    display:inline-block;
+    padding:9px 0;
+    animation:scroll 42s linear infinite;
+  }
+  .ticker-wrap:hover .ticker-track{animation-play-state:paused;}
+  @keyframes scroll{
+    0%{transform:translateX(0);}
+    100%{transform:translateX(-50%);}
+  }
+  .tick{
+    display:inline-flex;
+    align-items:center;
+    color:var(--chalk);
+    font-size:13px;
+    font-weight:600;
+    margin-right:38px;
+  }
+  .tick b{color:var(--gold); font-weight:700; margin:0 6px;}
+  .tick .arrow{opacity:0.6; margin:0 4px;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    max-width:1080px;
+    margin:0 auto;
+    padding:64px 28px 40px;
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--turf);
+    border:1px solid var(--turf);
+    padding:5px 12px;
+    border-radius:100px;
+    margin-bottom:22px;
+  }
+  h1.hero-title{
+    font-size:clamp(40px, 7vw, 84px);
+    line-height:0.94;
+    margin:0 0 20px;
+    color:var(--pitch-dark);
+  }
+  h1.hero-title em{
+    font-style:normal;
+    color:var(--stamp-red);
+  }
+  .hero p{
+    max-width:560px;
+    font-size:17px;
+    line-height:1.6;
+    color:#3B4A41;
+    margin:0 0 6px;
+  }
+  .hero .meta{
+    font-size:13px;
+    color:#6b7a70;
+    margin-top:18px;
+  }
+
+  /* ---------- section shell ---------- */
+  section.block{
+    max-width:1080px;
+    margin:0 auto;
+    padding:36px 28px 12px;
+  }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:12px;
+    margin-bottom:28px;
+  }
+  .section-head h2{
+    font-size:clamp(26px, 4vw, 38px);
+    margin:0;
+    color:var(--pitch-dark);
+  }
+  .section-head .count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:#8a9a90;
+  }
+
+  /* ---------- done deal cards ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+    gap:18px;
+    margin-bottom:8px;
+  }
+  .card{
+    position:relative;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:20px 18px 22px;
+    overflow:hidden;
+  }
+  .card .crest{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--pitch);
+    color:var(--chalk);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Anton',sans-serif;
+    font-size:14px;
+  }
+  .card .move{
+    display:flex; align-items:center; gap:10px; margin:14px 0 10px;
+    font-size:13px; font-weight:600; color:#586b60;
+  }
+  .card .move .to{color:var(--ink);}
+  .card h3{
+    margin:0 0 8px;
+    font-size:19px;
+    color:var(--pitch-dark);
+  }
+  .card p{
+    margin:0;
+    font-size:13.5px;
+    line-height:1.55;
+    color:#556058;
+  }
+  .fee{
+    display:inline-block;
+    margin-top:12px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:700;
+    color:var(--turf);
+    background:#EAF2EC;
+    padding:3px 9px;
+    border-radius:3px;
+  }
+  .stamp{
+    position:absolute;
+    top:14px; right:-8px;
+    transform:rotate(9deg);
+    border:2.5px solid var(--stamp-red);
+    color:var(--stamp-red);
+    font-family:'Anton',sans-serif;
+    font-size:11px;
+    letter-spacing:0.08em;
+    padding:3px 10px;
+    border-radius:3px;
+    opacity:0.9;
+  }
+
+  /* ---------- advanced talks (progress rows) ---------- */
+  .talk-row{
+    display:grid;
+    grid-template-columns: 1.4fr 0.9fr 1.6fr auto;
+    gap:16px;
+    align-items:center;
+    padding:18px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .talk-row:last-child{border-bottom:none;}
+  .talk-players{
+    font-size:16px; font-weight:700; color:var(--pitch-dark);
+  }
+  .talk-players .sub{
+    display:block; font-size:12.5px; font-weight:500; color:#7c8a80; margin-top:2px;
+  }
+  .talk-detail{font-size:13px; color:#556058; line-height:1.5;}
+  .meter{height:6px; background:var(--chalk-dim); border-radius:10px; overflow:hidden;}
+  .meter i{display:block; height:100%; background:var(--gold);}
+  .pct{font-family:'JetBrains Mono',monospace; font-size:12px; color:#8a9a90; margin-top:5px;}
+  .status-pill{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;
+    padding:5px 10px; border-radius:100px; white-space:nowrap; text-align:center;
+    background:#FBF1DE; color:#9A6F0B;
+  }
+
+  /* ---------- rumour mill ---------- */
+  .rumour{
+    display:flex; gap:14px; padding:16px 0; border-bottom:1px dashed var(--line);
+  }
+  .rumour:last-child{border-bottom:none;}
+  .rumour .idx{
+    font-family:'JetBrains Mono',monospace; color:#b7c2ba; font-size:13px; padding-top:2px;
+  }
+  .rumour h4{margin:0 0 4px; font-size:15.5px; color:var(--pitch-dark);}
+  .rumour p{margin:0; font-size:13.5px; color:#5c675f; line-height:1.55;}
+  .rumour .src{font-size:11.5px; color:#9aa79f; margin-top:6px; font-style:italic;}
+
+  footer{
+    max-width:1080px; margin:40px auto 0; padding:26px 28px 50px;
+    border-top:1px solid var(--line);
+    font-size:12px; color:#8a9a90; line-height:1.7;
+  }
+
+  /* ---------- tab nav ---------- */
+  .tabs{
+    position:sticky;
+    top:0;
+    z-index:20;
+    background:var(--chalk);
+    border-bottom:1px solid var(--line);
+    padding:14px 28px;
+  }
+  .tabs-inner{
+    max-width:1080px;
+    margin:0 auto;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.02em;
+    background:#fff;
+    color:var(--pitch-dark);
+    border:1.5px solid var(--line);
+    border-radius:100px;
+    padding:9px 18px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .tab-btn .n{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    background:var(--chalk-dim);
+    color:#6b7a70;
+    border-radius:100px;
+    padding:1px 7px;
+  }
+  .tab-btn:hover{border-color:var(--turf);}
+  .tab-btn.active{
+    background:var(--pitch-dark);
+    color:var(--chalk);
+    border-color:var(--pitch-dark);
+  }
+  .tab-btn.active .n{
+    background:rgba(245,243,234,0.16);
+    color:var(--chalk);
+  }
+  section.block{display:none;}
+  section.block.visible{display:block;}
+
+  @media (max-width:640px){
+    .talk-row{grid-template-columns:1fr; gap:8px;}
+    .status-pill{justify-self:start;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .ticker-track{animation:none;}
+    .topbar .dot{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div><span class="dot" id="statusDot"></span><span id="statusLabel">LIVE — SUMMER WINDOW</span></div>
+    <div style="display:flex; align-items:center;">
+      <span class="window"><span id="windowDates">15 JUN – 01 SEP 2026</span> · <span id="countdownLabel">CLOSES IN</span> <span class="mono" id="countdown">—</span> DAYS</span>
+      <button class="refresh-btn" id="refreshBtn" title="Fetches confirmed transfers from your local transfer-server (see README) — make sure it's running on localhost:3000">        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+        Refresh
+      </button>
+      <span class="last-updated" id="lastUpdated"></span>
+    </div>
+  </div>
+
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="tickerTrack"></div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">● Transfer Wire</div>
+    <h1 class="hero-title">Every move.<br>As it <em>happens.</em></h1>
+    <p>A running record of the summer window — confirmed signings, deals in the medical room, and the rumours still doing the rounds.</p>
+    <div class="meta">Snapshot compiled 30 July 2026 from wire reports · not an auto-refreshing feed</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tabs-inner">
+      <button class="tab-btn" data-target="done">Done deals <span class="n" id="countDone">0</span></button>
+      <button class="tab-btn" data-target="talks">Here we go? <span class="n" id="countTalks">0</span></button>
+      <button class="tab-btn" data-target="rumours">Rumour mill <span class="n" id="countRumours">0</span></button>
+    </div>
+  </div>
+
+  <section class="block" id="done">
+    <div class="section-head">
+      <h2>Done deals</h2>
+      <div class="count">confirmed by the clubs</div>
+    </div>
+    <div class="grid" id="doneGrid"></div>
+  </section>
+
+  <section class="block" id="talks">
+    <div class="section-head">
+      <h2>Here we go?</h2>
+      <div class="count">advanced negotiations</div>
+    </div>
+    <div id="talksList"></div>
+  </section>
+
+  <section class="block" id="rumours">
+    <div class="section-head">
+      <h2>Rumour mill</h2>
+      <div class="count">links &amp; speculation</div>
+    </div>
+    <div id="rumourList"></div>
+  </section>
+
+  <footer>
+    Compiled from wire reports (BeSoccer, Sky Sports, Transfermarkt, ESPN, TNT Sports, Football365) as of 30 July 2026. Fees for undisclosed deals are omitted; reported figures are as stated by outlets and unconfirmed by clubs unless marked "done." This page is a static snapshot, not a live data feed — ask for a refresh to get newer lines.
+  </footer>
+
+<script>
+// ---- data ----
+const done = [
+  {a:"NUFC", from:"Newcastle United", to:"Barcelona", name:"Anthony Gordon", note:"Winger completes a big-money move to Catalonia, one of the summer's marquee exits from St James' Park.", fee:"£69.3m"},
+  {a:"AJA", from:"Ajax", to:"Twente", name:"Wout Weghorst", note:"Striker switches Eredivisie clubs, confirmed by both sides.", fee:"Undisclosed"},
+  {a:"MCI", from:"Manchester City", to:"Fenerbahçe", name:"Nathan Aké", note:"Defender leaves after six years at City for a new challenge in Turkey.", fee:"Undisclosed"},
+  {a:"FRA", from:"Eintracht Frankfurt", to:"Bayern Munich", name:"Nathaniel Brown", note:"Germany full-back signs in Bavaria on a deal running to 2031.", fee:"Undisclosed"},
+  {a:"SOC", from:"Real Sociedad", to:"Columbus Crew", name:"Brais Méndez", note:"Midfielder heads to MLS after four seasons in San Sebastián.", fee:"€6m"},
+  {a:"WOL", from:"Wolves", to:"Ajax", name:"Tolu Arokodare", note:"Striker joins on a season-long loan with an option to buy.", fee:"Loan + option"},
+  {a:"MUN", from:"Manchester United", to:"Napoli", name:"Outgoing squad player", note:"Fee reported for a departure from Old Trafford this window.", fee:"£38m"},
+  {a:"AVL", from:"Aston Villa", to:"Roma", name:"Outgoing squad player", note:"Villa sanction a sale to the Italian capital.", fee:"£21.6m"},
+];
+
+const talks = [
+  {p:"Bradley Barcola", sub:"PSG → Liverpool", pct:70, status:"Personal terms agreed", detail:"Winger has given the green light to Anfield after talks with the head coach; PSG's asking price (reportedly north of £145m) is the last hurdle before a fee is agreed."},
+  {p:"Danny Welbeck", sub:"Brighton → Chelsea", pct:85, status:"Medical stage", detail:"Fee understood to be finalised, with the forward granted permission to undergo his medical at Stamford Bridge."},
+  {p:"John Stones", sub:"Manchester City → Inter Milan", pct:80, status:"Medical pending", detail:"Considered the closest of the current crop of deals to completion, contingent on the defender passing his medical."},
+  {p:"Rodri", sub:"Manchester City → Real Madrid", pct:25, status:"Early talks", detail:"Real Madrid have opened discussions with City over a deal reportedly in the region of £40m, but City are said to be reluctant sellers and the player is still recovering from back surgery."},
+  {p:"Sandro Tonali", sub:"Newcastle → Arsenal / Tottenham", pct:20, status:"Linked", detail:"Both London clubs have been credited with interest, adding to uncertainty over Newcastle's midfield plans for next season."},
+];
+
+const rumours = [
+  {t:"Jack Grealish — Al Hilal", d:"Reported interest from the Saudi Pro League, though nothing beyond speculation at this stage.", s:"Reported by UK outlets"},
+  {t:"Marcus Rashford — Roma", d:"Named among players being linked with a move to Serie A this summer.", s:"Wire reports"},
+  {t:"Bruno Guimarães — Arsenal", d:"Arsenal continue to be credited with long-standing interest in the Newcastle midfielder.", s:"Wire reports"},
+  {t:"Takehiro Tomiyasu — Crystal Palace", d:"Former Arsenal defender training with the Eagles as he eyes a Premier League return.", s:"Transfermarkt"},
+  {t:"Aurélien Tchouaméni — new Real Madrid terms", d:"Reported to be closing in on improved terms to commit his long-term future to the club rather than a departure.", s:"BeSoccer"},
+];
+
+// ---- render helpers ----
+function initials(s){
+  return s.split(/\s+/).map(w=>w[0]).join("").slice(0,3).toUpperCase();
+}
+
+const doneGrid = document.getElementById('doneGrid');
+done.forEach(d=>{
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="stamp">Done deal</div>
+    <div class="crest">${d.a}</div>
+    <div class="move">${d.from} <span style="opacity:.5">→</span> <span class="to">${d.to}</span></div>
+    <h3>${d.name}</h3>
+    <p>${d.note}</p>
+    <span class="fee">${d.fee}</span>
+  `;
+  doneGrid.appendChild(card);
+});
+
+const talksList = document.getElementById('talksList');
+talks.forEach(t=>{
+  const row = document.createElement('div');
+  row.className = 'talk-row';
+  row.innerHTML = `
+    <div class="talk-players">${t.p}<span class="sub">${t.sub}</span></div>
+    <div>
+      <div class="meter"><i style="width:${t.pct}%"></i></div>
+      <div class="pct">${t.pct}% · ${t.status}</div>
+    </div>
+    <div class="talk-detail">${t.detail}</div>
+    <div class="status-pill">${t.status}</div>
+  `;
+  talksList.appendChild(row);
+});
+
+const rumourList = document.getElementById('rumourList');
+rumours.forEach((r,i)=>{
+  const row = document.createElement('div');
+  row.className = 'rumour';
+  row.innerHTML = `
+    <div class="idx">${String(i+1).padStart(2,'0')}</div>
+    <div>
+      <h4>${r.t}</h4>
+      <p>${r.d}</p>
+      <div class="src">${r.s}</div>
+    </div>
+  `;
+  rumourList.appendChild(row);
+});
+
+// ---- ticker ----
+const tickerItems = [...done.map(d=>({from:d.from,to:d.to,name:d.name,fee:d.fee})),
+  ...talks.map(t=>({from:t.sub.split(' → ')[0], to:t.sub.split(' → ')[1], name:t.p, fee:t.status}))];
+const track = document.getElementById('tickerTrack');
+function tickHTML(item){
+  return `<span class="tick">${item.name} <span class="arrow">·</span> ${item.from} <b>→</b> ${item.to} <span class="arrow">·</span> ${item.fee}</span>`;
+}
+track.innerHTML = tickerItems.map(tickHTML).join('') + tickerItems.map(tickHTML).join('');
+
+// ---- transfer window status (auto-advances once a window closes) ----
+// Dates are approximate typical Premier League / major European windows —
+// adjust here if your league's actual dates differ.
+const TRANSFER_WINDOWS = [
+  { label: "SUMMER", open: "2026-06-15T00:00:00+01:00", close: "2026-09-01T23:00:00+01:00" },
+  { label: "WINTER", open: "2027-01-01T00:00:00+00:00", close: "2027-02-02T23:00:00+00:00" },
+  { label: "SUMMER", open: "2027-06-15T00:00:00+01:00", close: "2027-09-01T23:00:00+01:00" },
+  { label: "WINTER", open: "2028-01-01T00:00:00+00:00", close: "2028-02-02T23:00:00+00:00" },
+  { label: "SUMMER", open: "2028-06-15T00:00:00+01:00", close: "2028-09-01T23:00:00+01:00" },
+];
+
+function formatRange(openStr, closeStr){
+  const opts = { day: '2-digit', month: 'short' };
+  const o = new Date(openStr), c = new Date(closeStr);
+  const oStr = o.toLocaleDateString('en-GB', opts).toUpperCase().replace(',', '');
+  const cStr = c.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase().replace(',', '');
+  return `${oStr} \u2013 ${cStr}`;
+}
+
+function paintWindowStatus(){
+  const now = new Date();
+  const statusDot = document.getElementById('statusDot');
+  const statusLabel = document.getElementById('statusLabel');
+  const windowDates = document.getElementById('windowDates');
+  const countdownLabel = document.getElementById('countdownLabel');
+  const countdownEl = document.getElementById('countdown');
+
+  // Find the first window that hasn't closed yet
+  const upcoming = TRANSFER_WINDOWS.find(w => now < new Date(w.close));
+
+  if (!upcoming){
+    statusLabel.textContent = "WINDOW SCHEDULE NEEDS UPDATING";
+    countdownLabel.textContent = "";
+    countdownEl.textContent = "—";
+    return;
+  }
+
+  const openDate = new Date(upcoming.open);
+  const closeDate = new Date(upcoming.close);
+  windowDates.textContent = formatRange(upcoming.open, upcoming.close);
+
+  if (now >= openDate){
+    // currently inside this window
+    statusLabel.textContent = `LIVE — ${upcoming.label} WINDOW`;
+    statusDot.style.display = "inline-block";
+    countdownLabel.textContent = "CLOSES IN";
+    countdownEl.textContent = Math.max(0, Math.round((closeDate - now) / 86400000));
+  } else {
+    // between windows, waiting for this one to open
+    statusLabel.textContent = `WINDOW CLOSED — ${upcoming.label} OPENS`;
+    statusDot.style.display = "none";
+    countdownLabel.textContent = "OPENS IN";
+    countdownEl.textContent = Math.max(0, Math.round((openDate - now) / 86400000));
+  }
+}
+
+paintWindowStatus();
+setInterval(paintWindowStatus, 1000 * 60 * 60); // refresh once an hour is plenty
+
+// ---- tab switching ----
+document.getElementById('countDone').textContent = done.length;
+document.getElementById('countTalks').textContent = talks.length;
+document.getElementById('countRumours').textContent = rumours.length;
+
+const tabButtons = document.querySelectorAll('.tab-btn');
+const sections = {
+  done: document.getElementById('done'),
+  talks: document.getElementById('talks'),
+  rumours: document.getElementById('rumours'),
+};
+
+function showTab(name){
+  Object.entries(sections).forEach(([key, el])=>{
+    el.classList.toggle('visible', key === name);
+  });
+  tabButtons.forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.target === name);
+  });
+}
+
+tabButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=> showTab(btn.dataset.target));
+});
+
+showTab('done');
+
+// ---- refresh button: calls your local backend (see transfer-server/) ----
+const BACKEND_URL = "http://localhost:3000/api/transfers";
+const lastUpdatedEl = document.getElementById('lastUpdated');
+const refreshBtn = document.getElementById('refreshBtn');
+
+function formatSince(date){
+  const mins = Math.round((Date.now() - date.getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const daysAgo = Math.round(hrs / 24);
+  return `${daysAgo}d ago`;
+}
+
+let lastFetchedAt = null;
+function paintLastUpdated(){
+  if (!lastFetchedAt){
+    lastUpdatedEl.textContent = "Not connected to live data yet";
+    return;
+  }
+  lastUpdatedEl.textContent = `Live data checked ${formatSince(lastFetchedAt)}`;
+}
+paintLastUpdated();
+setInterval(paintLastUpdated, 60000);
+
+function liveRowToCard(row){
+  return {
+    a: initials(row.to || "?"),
+    from: row.from || "Unknown",
+    to: row.to || "Unknown",
+    name: row.name || "Unnamed player",
+    note: row.date ? `Confirmed transfer dated ${row.date}.` : "Confirmed transfer.",
+    fee: row.fee || "Undisclosed",
+  };
+}
+
+function renderDoneCards(list){
+  doneGrid.innerHTML = "";
+  list.forEach(d=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="stamp">Done deal</div>
+      <div class="crest">${d.a}</div>
+      <div class="move">${d.from} <span style="opacity:.5">&rarr;</span> <span class="to">${d.to}</span></div>
+      <h3>${d.name}</h3>
+      <p>${d.note}</p>
+      <span class="fee">${d.fee}</span>
+    `;
+    doneGrid.appendChild(card);
+  });
+  document.getElementById('countDone').textContent = list.length;
+}
+
+refreshBtn.addEventListener('click', async ()=>{
+  refreshBtn.classList.add('spinning');
+  refreshBtn.disabled = true;
+  lastUpdatedEl.textContent = "Fetching live transfers…";
+
+  try {
+    const res = await fetch(`${BACKEND_URL}?force=true`);
+    if (!res.ok) throw new Error(`Server responded ${res.status}`);
+    const payload = await res.json();
+
+    if (payload.transfers && payload.transfers.length){
+      renderDoneCards(payload.transfers.map(liveRowToCard));
+    }
+    lastFetchedAt = new Date(payload.fetchedAt || Date.now());
+    paintLastUpdated();
+    if (payload.warning){
+      console.warn("Some clubs failed to refresh:", payload.warning);
+    }
+  } catch (err) {
+    lastUpdatedEl.textContent = "Couldn't reach the backend — is transfer-server running on localhost:3000?";
+    console.error(err);
+  } finally {
+    refreshBtn.classList.remove('spinning');
+    refreshBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
