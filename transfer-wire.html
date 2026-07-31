@@ -30,6 +30,19 @@
   }
   .display{font-family:'Anton',sans-serif; letter-spacing:0.5px; text-transform:uppercase;}
   .mono{font-family:'JetBrains Mono',monospace;}
+  .digital-clock{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:1px;
+    background:#081810;
+    color:#5BE37D;
+    padding:2px 8px;
+    border-radius:4px;
+    border:1px solid rgba(91,227,125,0.35);
+    text-shadow:0 0 6px rgba(91,227,125,0.65);
+    display:inline-block;
+  }
 
   /* ---------- top bar ---------- */
   .topbar{
@@ -358,8 +371,8 @@
   <div class="topbar">
     <div><span class="dot" id="statusDot"></span><span id="statusLabel">LIVE — SUMMER WINDOW</span></div>
     <div style="display:flex; align-items:center;">
-      <span class="window"><span id="windowDates">15 JUN – 01 SEP 2026</span> · <span id="countdownLabel">CLOSES IN</span> <span class="mono" id="countdown">—</span> DAYS</span>
-      <button class="refresh-btn" id="refreshBtn" title="Fetches confirmed transfers from your local transfer-server (see README) — make sure it's running on localhost:3000">        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+      <span class="window"><span id="windowDates">15 JUN – 01 SEP 2026</span> · <span id="countdownLabel">CLOSES IN</span> <span class="digital-clock" id="countdown">00:00:00:00</span></span>
+      <button class="refresh-btn" id="refreshBtn" title="Fetches confirmed transfers from the live backend">        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
         Refresh
       </button>
       <span class="last-updated" id="lastUpdated"></span>
@@ -521,6 +534,19 @@ function formatRange(openStr, closeStr){
   return `${oStr} \u2013 ${cStr}`;
 }
 
+function formatDigital(ms){
+  const clamped = Math.max(0, ms);
+  const totalSeconds = Math.floor(clamped / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  const millis = Math.floor(clamped % 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  const pad3 = (n) => String(n).padStart(3, '0');
+  return `${pad(days)}:${pad(hours)}:${pad(mins)}:${pad(secs)}.${pad3(millis)}`;
+}
+
 function paintWindowStatus(){
   const now = new Date();
   const statusDot = document.getElementById('statusDot');
@@ -535,7 +561,7 @@ function paintWindowStatus(){
   if (!upcoming){
     statusLabel.textContent = "WINDOW SCHEDULE NEEDS UPDATING";
     countdownLabel.textContent = "";
-    countdownEl.textContent = "—";
+    countdownEl.textContent = "--:--:--:--";
     return;
   }
 
@@ -548,18 +574,18 @@ function paintWindowStatus(){
     statusLabel.textContent = `LIVE — ${upcoming.label} WINDOW`;
     statusDot.style.display = "inline-block";
     countdownLabel.textContent = "CLOSES IN";
-    countdownEl.textContent = Math.max(0, Math.round((closeDate - now) / 86400000));
+    countdownEl.textContent = formatDigital(closeDate - now);
   } else {
     // between windows, waiting for this one to open
     statusLabel.textContent = `WINDOW CLOSED — ${upcoming.label} OPENS`;
     statusDot.style.display = "none";
     countdownLabel.textContent = "OPENS IN";
-    countdownEl.textContent = Math.max(0, Math.round((openDate - now) / 86400000));
+    countdownEl.textContent = formatDigital(openDate - now);
   }
 }
 
 paintWindowStatus();
-setInterval(paintWindowStatus, 1000 * 60 * 60); // refresh once an hour is plenty
+setInterval(paintWindowStatus, 1000); // tick every second for the digital-watch effect
 
 // ---- tab switching ----
 document.getElementById('countDone').textContent = done.length;
@@ -662,7 +688,7 @@ refreshBtn.addEventListener('click', async ()=>{
       console.warn("Some clubs failed to refresh:", payload.warning);
     }
   } catch (err) {
-    lastUpdatedEl.textContent = "Couldn't reach the backend — is transfer-server running on localhost:3000?";
+    lastUpdatedEl.textContent = "Couldn't reach the live backend — check the API key is set correctly.";
     console.error(err);
   } finally {
     refreshBtn.classList.remove('spinning');
