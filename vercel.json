@@ -5,7 +5,7 @@
     { "src": "api/transfers.js", "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/", "dest": "/transfer-wire.html" },
-    { "src": "/api/transfers", "dest": "/api/transfers.js" }
+    { "src": "^/api/transfers$", "dest": "/api/transfers.js" },
+    { "src": "^/$", "dest": "/transfer-wire.html" }
   ]
 }
