@@ -478,37 +478,39 @@
     <div id="searchResultsBody"></div>
   </section>
 
-  <div class="tabs">
-    <div class="tabs-inner">
-      <button class="tab-btn" data-target="done">Done deals <span class="n" id="countDone">0</span></button>
-      <button class="tab-btn" data-target="talks">Here we go? <span class="n" id="countTalks">0</span></button>
-      <button class="tab-btn" data-target="rumours">Rumour mill <span class="n" id="countRumours">0</span></button>
+  <div id="generalTransferArea">
+    <div class="tabs">
+      <div class="tabs-inner">
+        <button class="tab-btn" data-target="done">Done deals <span class="n" id="countDone">0</span></button>
+        <button class="tab-btn" data-target="talks">Here we go? <span class="n" id="countTalks">0</span></button>
+        <button class="tab-btn" data-target="rumours">Rumour mill <span class="n" id="countRumours">0</span></button>
+      </div>
     </div>
+
+    <section class="block" id="done">
+      <div class="section-head">
+        <h2>Done deals</h2>
+        <div class="count">confirmed by the clubs</div>
+      </div>
+      <div class="grid" id="doneGrid"></div>
+    </section>
+
+    <section class="block" id="talks">
+      <div class="section-head">
+        <h2>Here we go?</h2>
+        <div class="count">advanced negotiations</div>
+      </div>
+      <div id="talksList"></div>
+    </section>
+
+    <section class="block" id="rumours">
+      <div class="section-head">
+        <h2>Rumour mill</h2>
+        <div class="count">links &amp; speculation</div>
+      </div>
+      <div id="rumourList"></div>
+    </section>
   </div>
-
-  <section class="block" id="done">
-    <div class="section-head">
-      <h2>Done deals</h2>
-      <div class="count">confirmed by the clubs</div>
-    </div>
-    <div class="grid" id="doneGrid"></div>
-  </section>
-
-  <section class="block" id="talks">
-    <div class="section-head">
-      <h2>Here we go?</h2>
-      <div class="count">advanced negotiations</div>
-    </div>
-    <div id="talksList"></div>
-  </section>
-
-  <section class="block" id="rumours">
-    <div class="section-head">
-      <h2>Rumour mill</h2>
-      <div class="count">links &amp; speculation</div>
-    </div>
-    <div id="rumourList"></div>
-  </section>
 
   <footer>
     Compiled from wire reports (BeSoccer, Sky Sports, Transfermarkt, ESPN, TNT Sports, Football365) as of 30 July 2026. Fees for undisclosed deals are omitted; reported figures are as stated by outlets and unconfirmed by clubs unless marked "done." This page is a static snapshot, not a live data feed — ask for a refresh to get newer lines.
@@ -829,6 +831,7 @@ async function runClubSearch(){
 
   clubSearchBtn.disabled = true;
   clubSearchBtn.textContent = "Searching...";
+  document.getElementById('generalTransferArea').style.display = "none";
   searchResultsSection.style.display = "block";
   searchResultsTitle.textContent = `Searching for "${query}"...`;
   searchResultsBody.innerHTML = `<div class="search-status">Looking up club and fetching real transfer records...</div>`;
@@ -873,6 +876,7 @@ clubSearchInput.addEventListener('keydown', (e) => {
 });
 clearSearchBtn.addEventListener('click', () => {
   searchResultsSection.style.display = "none";
+  document.getElementById('generalTransferArea').style.display = "block";
   clubSearchInput.value = "";
 });
 </script>
