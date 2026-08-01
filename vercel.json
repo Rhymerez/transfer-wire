@@ -3,10 +3,12 @@
   "builds": [
     { "src": "transfer-wire.html", "use": "@vercel/static" },
     { "src": "og-image.png", "use": "@vercel/static" },
-    { "src": "api/transfers.js", "use": "@vercel/node" }
+    { "src": "api/transfers.js", "use": "@vercel/node" },
+    { "src": "api/search.js", "use": "@vercel/node" }
   ],
   "routes": [
     { "src": "^/api/transfers$", "dest": "/api/transfers.js" },
+    { "src": "^/api/search$", "dest": "/api/search.js" },
     { "src": "^/og-image.png$", "dest": "/og-image.png" },
     { "src": "^/$", "dest": "/transfer-wire.html" }
   ]
