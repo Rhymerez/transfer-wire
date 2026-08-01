@@ -183,6 +183,66 @@
     margin-top:18px;
   }
 
+  /* ---------- club search ---------- */
+  .search-box{
+    display:flex;
+    gap:10px;
+    margin-top:28px;
+    max-width:520px;
+  }
+  .search-box input{
+    flex:1;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:12px 16px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .search-box input:focus{
+    outline:none;
+    border-color:var(--turf);
+  }
+  .search-box button{
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    background:var(--pitch-dark);
+    color:var(--chalk);
+    border:none;
+    border-radius:8px;
+    padding:0 22px;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .search-box button:hover{background:var(--turf);}
+  .search-box button:disabled{opacity:0.6; cursor:default;}
+  .search-hint{
+    font-size:12px;
+    color:#8a9a90;
+    margin-top:8px;
+    max-width:520px;
+  }
+  .clear-search-btn{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:600;
+    background:none;
+    border:1px solid var(--line);
+    border-radius:100px;
+    padding:5px 12px;
+    cursor:pointer;
+    color:#6b7a70;
+  }
+  .clear-search-btn:hover{border-color:var(--stamp-red); color:var(--stamp-red);}
+  .search-status{
+    font-size:13.5px;
+    color:#556058;
+    padding:16px 0;
+  }
+  .search-status.error{color:var(--stamp-red);}
+
   /* ---------- section shell ---------- */
   section.block{
     max-width:1080px;
@@ -402,7 +462,21 @@
     <h1 class="hero-title">Every move.<br>As it <em>happens.</em></h1>
     <p>A running record of the summer window — confirmed signings, deals in the medical room, and the rumours still doing the rounds.</p>
     <div class="meta">Snapshot compiled 30 July 2026 from wire reports · not an auto-refreshing feed</div>
+
+    <div class="search-box">
+      <input type="text" id="clubSearchInput" placeholder="Search any club — e.g. Everton, Sevilla, Fenerbahçe..." autocomplete="off">
+      <button id="clubSearchBtn">Search</button>
+    </div>
+    <div class="search-hint">Pulls real confirmed transfers for any club. Talks &amp; Rumours below stay limited to the clubs we've curated.</div>
   </div>
+
+  <section class="block" id="searchResults" style="display:none;">
+    <div class="section-head">
+      <h2 id="searchResultsTitle">Search results</h2>
+      <button class="clear-search-btn" id="clearSearchBtn">✕ Clear</button>
+    </div>
+    <div id="searchResultsBody"></div>
+  </section>
 
   <div class="tabs">
     <div class="tabs-inner">
@@ -708,6 +782,98 @@ refreshBtn.addEventListener('click', async ()=>{
     refreshBtn.classList.remove('spinning');
     refreshBtn.disabled = false;
   }
+});
+
+// ---- club search ----
+const clubSearchInput = document.getElementById('clubSearchInput');
+const clubSearchBtn = document.getElementById('clubSearchBtn');
+const searchResultsSection = document.getElementById('searchResults');
+const searchResultsTitle = document.getElementById('searchResultsTitle');
+const searchResultsBody = document.getElementById('searchResultsBody');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+function feeToCard(row){
+  return {
+    a: initials(row.to || row.from || "?"),
+    from: row.from || "Unknown",
+    to: row.to || "Unknown",
+    name: row.name || "Unnamed player",
+    note: row.date ? `Confirmed transfer dated ${row.date}.` : "Confirmed transfer.",
+    fee: row.fee || "Undisclosed",
+  };
+}
+
+function renderSearchGrid(list){
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  list.forEach(row => {
+    const d = feeToCard(row);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="stamp">Confirmed</div>
+      <div class="crest">${d.a}</div>
+      <div class="move">${d.from} <span style="opacity:.5">&rarr;</span> <span class="to">${d.to}</span></div>
+      <h3>${d.name}</h3>
+      <p>${d.note}</p>
+      <span class="fee">${d.fee}</span>
+    `;
+    grid.appendChild(card);
+  });
+  return grid;
+}
+
+async function runClubSearch(){
+  const query = clubSearchInput.value.trim();
+  if (!query) return;
+
+  clubSearchBtn.disabled = true;
+  clubSearchBtn.textContent = "Searching...";
+  searchResultsSection.style.display = "block";
+  searchResultsTitle.textContent = `Searching for "${query}"...`;
+  searchResultsBody.innerHTML = `<div class="search-status">Looking up club and fetching real transfer records...</div>`;
+  searchResultsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  try {
+    const res = await fetch(`/api/search?club=${encodeURIComponent(query)}`);
+    const payload = await res.json();
+
+    if (!res.ok){
+      searchResultsTitle.textContent = `No results for "${query}"`;
+      searchResultsBody.innerHTML = `<div class="search-status error">${payload.error || "Something went wrong."}</div>`;
+      return;
+    }
+
+    searchResultsTitle.textContent = `${payload.club} — confirmed transfers`;
+    if (!payload.transfers || payload.transfers.length === 0){
+      searchResultsBody.innerHTML = `<div class="search-status">No recent confirmed transfers found for ${payload.club}.</div>`;
+      return;
+    }
+
+    searchResultsBody.innerHTML = "";
+    searchResultsBody.appendChild(renderSearchGrid(payload.transfers));
+
+    const note = document.createElement('div');
+    note.className = 'search-status';
+    note.textContent = `Showing real confirmed transfers only. Talks & Rumours aren't available for clubs outside our curated list.`;
+    searchResultsBody.appendChild(note);
+  } catch (err) {
+    searchResultsTitle.textContent = "Search failed";
+    searchResultsBody.innerHTML = `<div class="search-status error">Couldn't reach the search backend. Try again in a moment.</div>`;
+    console.error(err);
+  } finally {
+    clubSearchBtn.disabled = false;
+    clubSearchBtn.textContent = "Search";
+  }
+}
+
+clubSearchBtn.addEventListener('click', runClubSearch);
+clubSearchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') runClubSearch();
+});
+clearSearchBtn.addEventListener('click', () => {
+  searchResultsSection.style.display = "none";
+  clubSearchInput.value = "";
 });
 </script>
 </body>
