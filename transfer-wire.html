@@ -617,14 +617,13 @@ function tickHTML(item){
 track.innerHTML = tickerItems.map(tickHTML).join('') + tickerItems.map(tickHTML).join('');
 
 // ---- transfer window status (auto-advances once a window closes) ----
-// Dates are approximate typical Premier League / major European windows —
-// adjust here if your league's actual dates differ.
+// Officially confirmed by the Premier League as of Aug 2026. Source:
+// premierleague.com — summer 2026 & winter 2027 are the only two windows
+// confirmed so far; the PL announces one season's dates at a time, so
+// summer 2027 isn't official yet. Update this array once it's announced.
 const TRANSFER_WINDOWS = [
   { label: "SUMMER", open: "2026-06-15T00:00:00+01:00", close: "2026-09-01T23:00:00+01:00" },
-  { label: "WINTER", open: "2027-01-01T00:00:00+00:00", close: "2027-02-02T23:00:00+00:00" },
-  { label: "SUMMER", open: "2027-06-15T00:00:00+01:00", close: "2027-09-01T23:00:00+01:00" },
-  { label: "WINTER", open: "2028-01-01T00:00:00+00:00", close: "2028-02-02T23:00:00+00:00" },
-  { label: "SUMMER", open: "2028-06-15T00:00:00+01:00", close: "2028-09-01T23:00:00+01:00" },
+  { label: "WINTER", open: "2027-01-01T00:00:00+00:00", close: "2027-02-01T23:00:00+00:00" },
 ];
 
 function formatRange(openStr, closeStr){
@@ -660,7 +659,8 @@ function paintWindowStatus(){
   const upcoming = TRANSFER_WINDOWS.find(w => now < new Date(w.close));
 
   if (!upcoming){
-    statusLabel.textContent = "WINDOW SCHEDULE NEEDS UPDATING";
+    statusLabel.textContent = "NEXT WINDOW NOT YET ANNOUNCED";
+    windowDates.textContent = "Check back closer to the date";
     countdownLabel.textContent = "";
     countdownEl.textContent = "--:--:--:--";
     return;
