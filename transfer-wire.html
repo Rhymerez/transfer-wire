@@ -37,7 +37,9 @@
   html{scroll-behavior:smooth;}
   body{
     margin:0;
-    background:var(--chalk);
+    background-color:var(--chalk);
+    background-image:
+      repeating-linear-gradient(115deg, rgba(27,67,50,0.035) 0px, rgba(27,67,50,0.035) 46px, transparent 46px, transparent 92px);
     color:var(--ink);
     font-family:'Inter',sans-serif;
     -webkit-font-smoothing:antialiased;
@@ -145,7 +147,19 @@
     max-width:1080px;
     margin:0 auto;
     padding:64px 28px 40px;
+    position:relative;
   }
+  .hero::before{
+    content:"";
+    position:absolute;
+    top:-40px; left:50%;
+    width:900px; height:520px;
+    transform:translateX(-50%);
+    background:radial-gradient(ellipse at top, rgba(201,162,39,0.10), rgba(27,67,50,0.05) 45%, transparent 72%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .hero > *{position:relative; z-index:1;}
   .eyebrow{
     display:inline-flex;
     align-items:center;
@@ -282,6 +296,12 @@
     border-radius:4px;
     padding:20px 18px 22px;
     overflow:hidden;
+    box-shadow:0 1px 2px rgba(15,42,29,0.04), 0 6px 16px -8px rgba(15,42,29,0.14);
+    transition:box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card:hover{
+    box-shadow:0 2px 4px rgba(15,42,29,0.06), 0 12px 24px -10px rgba(15,42,29,0.20);
+    transform:translateY(-1px);
   }
   .card .crest{
     width:34px;height:34px;border-radius:50%;
