@@ -471,7 +471,7 @@
     <div class="eyebrow">● Transfer Wire</div>
     <h1 class="hero-title">Every move.<br>As it <em>happens.</em></h1>
     <p>A running record of the summer window — confirmed signings, deals in the medical room, and the rumours still doing the rounds.</p>
-    <div class="meta">Snapshot compiled 30 July 2026 from wire reports · not an auto-refreshing feed</div>
+    <div class="meta">Live feed · auto-updates from API-Football, BBC Sport &amp; The Guardian</div>
 
     <div class="search-box">
       <input type="text" id="clubSearchInput" placeholder="Search any club — e.g. Everton, Sevilla, Fenerbahçe..." autocomplete="off">
@@ -513,11 +513,7 @@
         <h2>Done deals</h2>
         <div class="count">confirmed by the clubs</div>
       </div>
-      <div class="grid" id="doneGrid"></div>
-      <div class="live-headlines">
-        <div class="live-head">Live headlines <span class="live-sub">auto-pulled from BBC Sport &amp; The Guardian</span></div>
-        <div id="doneLiveList"><div class="live-empty">Loading live headlines…</div></div>
-      </div>
+      <div class="grid" id="doneGrid"><div class="live-empty">Loading live transfers…</div></div>
     </section>
 
     <section class="block" id="talks">
@@ -525,11 +521,7 @@
         <h2>In talks</h2>
         <div class="count">advanced negotiations</div>
       </div>
-      <div id="talksList"></div>
-      <div class="live-headlines">
-        <div class="live-head">Live headlines <span class="live-sub">auto-pulled from BBC Sport &amp; The Guardian</span></div>
-        <div id="talksLiveList"><div class="live-empty">Loading live headlines…</div></div>
-      </div>
+      <div id="talksList"><div class="live-empty">Loading live headlines…</div></div>
     </section>
 
     <section class="block" id="rumours">
@@ -537,107 +529,40 @@
         <h2>Rumour mill</h2>
         <div class="count">links &amp; speculation</div>
       </div>
-      <div id="rumourList"></div>
-      <div class="live-headlines">
-        <div class="live-head">Live headlines <span class="live-sub">auto-pulled from BBC Sport &amp; The Guardian</span></div>
-        <div id="rumoursLiveList"><div class="live-empty">Loading live headlines…</div></div>
-      </div>
+      <div id="rumourList"><div class="live-empty">Loading live headlines…</div></div>
     </section>
   </div>
 
   <footer>
-    Compiled from wire reports (BeSoccer, Sky Sports, Transfermarkt, ESPN, TNT Sports, Football365) as of 30 July 2026. Fees for undisclosed deals are omitted; reported figures are as stated by outlets and unconfirmed by clubs unless marked "done." This page is a static snapshot, not a live data feed — ask for a refresh to get newer lines.
+    Done Deals are pulled live from API-Football's confirmed-transfer data. In Talks and Rumour Mill are pulled live from BBC Sport and The Guardian's public feeds and sorted automatically by keyword — this sorting is a best guess, not a guarantee, so always check the linked source for the full story. This page updates itself on every visit; no manual editing involved.
   </footer>
 
 <script>
-// ---- data ----
-const done = [
-  {a:"NUFC", from:"Newcastle United", to:"Barcelona", name:"Anthony Gordon", note:"Winger completes a big-money move to Catalonia, one of the summer's marquee exits from St James' Park.", fee:"£69.3m"},
-  {a:"AJA", from:"Ajax", to:"Twente", name:"Wout Weghorst", note:"Striker switches Eredivisie clubs, confirmed by both sides.", fee:"Undisclosed"},
-  {a:"MCI", from:"Manchester City", to:"Fenerbahçe", name:"Nathan Aké", note:"Defender leaves after six years at City for a new challenge in Turkey.", fee:"Undisclosed"},
-  {a:"FRA", from:"Eintracht Frankfurt", to:"Bayern Munich", name:"Nathaniel Brown", note:"Germany full-back signs in Bavaria on a deal running to 2031.", fee:"Undisclosed"},
-  {a:"SOC", from:"Real Sociedad", to:"Columbus Crew", name:"Brais Méndez", note:"Midfielder heads to MLS after four seasons in San Sebastián.", fee:"€6m"},
-  {a:"WOL", from:"Wolves", to:"Ajax", name:"Tolu Arokodare", note:"Striker joins on a season-long loan with an option to buy.", fee:"Loan + option"},
-  {a:"MUN", from:"Manchester United", to:"Napoli", name:"Outgoing squad player", note:"Fee reported for a departure from Old Trafford this window.", fee:"£38m"},
-  {a:"AVL", from:"Aston Villa", to:"Roma", name:"Outgoing squad player", note:"Villa sanction a sale to the Italian capital.", fee:"£21.6m"},
-  {a:"CHE", from:"Brighton", to:"Chelsea", name:"Danny Welbeck", note:"Forward, 35, joins on a two-year deal to add Premier League experience to Xabi Alonso's squad.", fee:"Undisclosed"},
-  {a:"CHE", from:"Brentford", to:"Chelsea", name:"Jordan Henderson", note:"Midfielder, 36, signs a two-year contract after leaving Brentford by mutual consent.", fee:"Free"},
-];
-
-const talks = [
-  {p:"Bradley Barcola", sub:"PSG → Liverpool", pct:70, status:"Personal terms agreed", detail:"Winger has given the green light to Anfield after talks with the head coach; PSG's asking price (reportedly north of £145m) is the last hurdle before a fee is agreed."},
-  {p:"John Stones", sub:"Manchester City → Inter Milan", pct:80, status:"Medical pending", detail:"Considered the closest of the current crop of deals to completion, contingent on the defender passing his medical."},
-  {p:"Rodri", sub:"Manchester City → Real Madrid", pct:25, status:"Early talks", detail:"Real Madrid have opened discussions with City over a deal reportedly in the region of £40m, but City are said to be reluctant sellers and the player is still recovering from back surgery."},
-  {p:"Sandro Tonali", sub:"Newcastle → Arsenal / Tottenham", pct:20, status:"Linked", detail:"Both London clubs have been credited with interest, adding to uncertainty over Newcastle's midfield plans for next season."},
-];
-
-const rumours = [
-  {t:"Jack Grealish — Al Hilal", d:"Reported interest from the Saudi Pro League, though nothing beyond speculation at this stage.", s:"Reported by UK outlets"},
-  {t:"Marcus Rashford — Roma", d:"Named among players being linked with a move to Serie A this summer.", s:"Wire reports"},
-  {t:"Bruno Guimarães — Arsenal", d:"Arsenal continue to be credited with long-standing interest in the Newcastle midfielder.", s:"Wire reports"},
-  {t:"Takehiro Tomiyasu — Crystal Palace", d:"Former Arsenal defender training with the Eagles as he eyes a Premier League return.", s:"Transfermarkt"},
-  {t:"Aurélien Tchouaméni — new Real Madrid terms", d:"Reported to be closing in on improved terms to commit his long-term future to the club rather than a departure.", s:"BeSoccer"},
-];
-
 // ---- render helpers ----
 function initials(s){
   return s.split(/\s+/).map(w=>w[0]).join("").slice(0,3).toUpperCase();
 }
 
 const doneGrid = document.getElementById('doneGrid');
-done.forEach(d=>{
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.innerHTML = `
-    <div class="stamp">Done deal</div>
-    <div class="crest">${d.a}</div>
-    <div class="move">${d.from} <span style="opacity:.5">→</span> <span class="to">${d.to}</span></div>
-    <h3>${d.name}</h3>
-    <p>${d.note}</p>
-    <span class="fee">${d.fee}</span>
-  `;
-  doneGrid.appendChild(card);
-});
-
 const talksList = document.getElementById('talksList');
-talks.forEach(t=>{
-  const row = document.createElement('div');
-  row.className = 'talk-row';
-  row.innerHTML = `
-    <div class="talk-players">${t.p}<span class="sub">${t.sub}</span></div>
-    <div>
-      <div class="meter"><i style="width:${t.pct}%"></i></div>
-      <div class="pct">${t.pct}% · ${t.status}</div>
-    </div>
-    <div class="talk-detail">${t.detail}</div>
-    <div class="status-pill">${t.status}</div>
-  `;
-  talksList.appendChild(row);
-});
-
 const rumourList = document.getElementById('rumourList');
-rumours.forEach((r,i)=>{
-  const row = document.createElement('div');
-  row.className = 'rumour';
-  row.innerHTML = `
-    <div class="idx">${String(i+1).padStart(2,'0')}</div>
-    <div>
-      <h4>${r.t}</h4>
-      <p>${r.d}</p>
-      <div class="src">${r.s}</div>
-    </div>
-  `;
-  rumourList.appendChild(row);
-});
 
-// ---- ticker ----
-const tickerItems = [...done.map(d=>({from:d.from,to:d.to,name:d.name,fee:d.fee})),
-  ...talks.map(t=>({from:t.sub.split(' → ')[0], to:t.sub.split(' → ')[1], name:t.p, fee:t.status}))];
+// ---- ticker: rebuilt each time fresh data comes in ----
 const track = document.getElementById('tickerTrack');
 function tickHTML(item){
   return `<span class="tick">${item.name} <span class="arrow">·</span> ${item.from} <b>→</b> ${item.to} <span class="arrow">·</span> ${item.fee}</span>`;
 }
-track.innerHTML = tickerItems.map(tickHTML).join('') + tickerItems.map(tickHTML).join('');
+function rebuildTicker(doneRows, talksRows){
+  const items = [
+    ...doneRows.map(d=>({from:d.from,to:d.to,name:d.name,fee:d.fee})),
+    ...talksRows.map(t=>({from:"Linked", to:t.source, name:t.title, fee:"In talks"})),
+  ];
+  if (!items.length){
+    track.innerHTML = `<span class="tick">Transfer Wire — no live transfer data yet, checking sources…</span>`;
+    return;
+  }
+  track.innerHTML = items.map(tickHTML).join('') + items.map(tickHTML).join('');
+}
 
 // ---- transfer window status (auto-advances once a window closes) ----
 // Officially confirmed by the Premier League as of Aug 2026. Source:
@@ -712,9 +637,7 @@ paintWindowStatus();
 setInterval(paintWindowStatus, 1000); // tick every second for the digital-watch effect
 
 // ---- tab switching ----
-document.getElementById('countDone').textContent = done.length;
-document.getElementById('countTalks').textContent = talks.length;
-document.getElementById('countRumours').textContent = rumours.length;
+// (tab counts are now set by renderDoneCards / renderTalksRows / renderRumourRows as live data loads)
 
 const tabButtons = document.querySelectorAll('.tab-btn');
 const sections = {
@@ -793,36 +716,6 @@ function renderDoneCards(list){
   document.getElementById('countDone').textContent = list.length;
 }
 
-refreshBtn.addEventListener('click', async ()=>{
-  refreshBtn.classList.add('spinning');
-  refreshBtn.disabled = true;
-  lastUpdatedEl.textContent = "Fetching live transfers…";
-
-  try {
-    const res = await fetch(`${BACKEND_URL}?force=true`);
-    if (!res.ok) throw new Error(`Server responded ${res.status}`);
-    const payload = await res.json();
-
-    if (payload.transfers && payload.transfers.length){
-      renderDoneCards(payload.transfers.map(liveRowToCard));
-    }
-    lastFetchedAt = new Date(payload.fetchedAt || Date.now());
-    paintLastUpdated();
-    if (payload.warning){
-      console.warn("Some clubs failed to refresh:", payload.warning);
-    }
-  } catch (err) {
-    lastUpdatedEl.textContent = "Couldn't reach the live backend — check the API key is set correctly.";
-    console.error(err);
-  } finally {
-    refreshBtn.classList.remove('spinning');
-    refreshBtn.disabled = false;
-  }
-
-  loadLiveHeadlines(true);
-});
-
-// ---- live headlines: real BBC Sport / Guardian stories, auto-classified ----
 function timeAgo(dateStr){
   const t = new Date(dateStr).getTime();
   if (isNaN(t)) return "";
@@ -834,37 +727,82 @@ function timeAgo(dateStr){
   return `${Math.round(hrs / 24)}d ago`;
 }
 
-function renderLiveList(containerId, items){
-  const el = document.getElementById(containerId);
+// Headline-style rows for the In Talks / Rumour Mill sections — these come
+// from BBC Sport / Guardian RSS via api/news.js, auto-classified by keyword.
+function renderNewsRows(el, countElId, items, emptyMsg){
   if (!items || !items.length){
-    el.innerHTML = `<div class="live-empty">No matching live headlines right now — check back later.</div>`;
+    el.innerHTML = `<div class="live-empty">${emptyMsg}</div>`;
+    document.getElementById(countElId).textContent = "0";
     return;
   }
-  el.innerHTML = items.map(item => `
-    <div class="live-item">
-      <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
-      <div class="live-meta">${item.source} · ${timeAgo(item.pubDate)}</div>
+  el.innerHTML = items.map((item, i) => `
+    <div class="rumour">
+      <div class="idx">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <h4><a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">${item.title}</a></h4>
+        <p>${item.teaser || ""}</p>
+        <div class="src">${item.source} · ${timeAgo(item.pubDate)}</div>
+      </div>
     </div>
   `).join('');
+  document.getElementById(countElId).textContent = items.length;
 }
 
-async function loadLiveHeadlines(force){
+// Holds the latest news payload so club search can filter it client-side.
+window.latestNews = { done: [], talks: [], rumours: [] };
+
+async function loadNews(force){
   try {
     const res = await fetch(`/api/news${force ? '?force=true' : ''}`);
     if (!res.ok) throw new Error(`Server responded ${res.status}`);
     const payload = await res.json();
-    renderLiveList('doneLiveList', payload.done);
-    renderLiveList('talksLiveList', payload.talks);
-    renderLiveList('rumoursLiveList', payload.rumours);
+    window.latestNews = payload;
+    renderNewsRows(talksList, 'countTalks', payload.talks, "No live headlines matched as 'in talks' right now — check back soon.");
+    renderNewsRows(rumourList, 'countRumours', payload.rumours, "No live rumour headlines right now — check back soon.");
     if (payload.warning) console.warn("Some feeds failed:", payload.warning);
+    return payload;
   } catch (err) {
-    ['doneLiveList','talksLiveList','rumoursLiveList'].forEach(id=>{
-      document.getElementById(id).innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
-    });
+    talksList.innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
+    rumourList.innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
     console.error(err);
+    return null;
   }
 }
-loadLiveHeadlines(false);
+
+async function loadTransfers(force){
+  try {
+    const res = await fetch(`${BACKEND_URL}${force ? '?force=true' : ''}`);
+    if (!res.ok) throw new Error(`Server responded ${res.status}`);
+    const payload = await res.json();
+    const cards = (payload.transfers || []).map(liveRowToCard);
+    renderDoneCards(cards);
+    lastFetchedAt = new Date(payload.fetchedAt || Date.now());
+    paintLastUpdated();
+    if (payload.warning) console.warn("Some clubs failed to refresh:", payload.warning);
+    return cards;
+  } catch (err) {
+    doneGrid.innerHTML = `<div class="live-empty">Couldn't reach the live backend — check the API key is set correctly.</div>`;
+    console.error(err);
+    return [];
+  }
+}
+
+async function loadEverything(force){
+  const [doneCards, newsPayload] = await Promise.all([loadTransfers(force), loadNews(force)]);
+  rebuildTicker(doneCards, newsPayload ? newsPayload.talks : []);
+}
+
+refreshBtn.addEventListener('click', async ()=>{
+  refreshBtn.classList.add('spinning');
+  refreshBtn.disabled = true;
+  lastUpdatedEl.textContent = "Fetching live data…";
+  await loadEverything(true);
+  refreshBtn.classList.remove('spinning');
+  refreshBtn.disabled = false;
+});
+
+// Auto-load everything the moment the page opens — no manual step needed.
+loadEverything(false);
 
 // ---- club search ----
 const clubSearchInput = document.getElementById('clubSearchInput');
@@ -923,50 +861,13 @@ function matchesClub(text, clubName){
 }
 
 function renderClubTalks(clubName){
-  const matches = talks.filter(t => matchesClub(t.sub, clubName));
-  document.getElementById('searchCountTalks').textContent = matches.length;
-  if (matches.length === 0){
-    searchTalksPanel.innerHTML = `<div class="search-status">No advanced talks currently tracked for ${clubName}. This section only covers a curated set of major storylines, not every club.</div>`;
-    return;
-  }
-  searchTalksPanel.innerHTML = "";
-  matches.forEach(t => {
-    const row = document.createElement('div');
-    row.className = 'talk-row';
-    row.innerHTML = `
-      <div class="talk-players">${t.p}<span class="sub">${t.sub}</span></div>
-      <div>
-        <div class="meter"><i style="width:${t.pct}%"></i></div>
-        <div class="pct">${t.pct}% · ${t.status}</div>
-      </div>
-      <div class="talk-detail">${t.detail}</div>
-      <div class="status-pill">${t.status}</div>
-    `;
-    searchTalksPanel.appendChild(row);
-  });
+  const matches = (window.latestNews.talks || []).filter(t => matchesClub(`${t.title} ${t.teaser}`, clubName));
+  renderNewsRows(searchTalksPanel, 'searchCountTalks', matches, `No live "in talks" headlines matched for ${clubName} right now.`);
 }
 
 function renderClubRumours(clubName){
-  const matches = rumours.filter(r => matchesClub(r.t, clubName));
-  document.getElementById('searchCountRumours').textContent = matches.length;
-  if (matches.length === 0){
-    searchRumoursPanel.innerHTML = `<div class="search-status">No rumours currently tracked for ${clubName}. This section only covers a curated set of major storylines, not every club.</div>`;
-    return;
-  }
-  searchRumoursPanel.innerHTML = "";
-  matches.forEach((r, i) => {
-    const row = document.createElement('div');
-    row.className = 'rumour';
-    row.innerHTML = `
-      <div class="idx">${String(i+1).padStart(2,'0')}</div>
-      <div>
-        <h4>${r.t}</h4>
-        <p>${r.d}</p>
-        <div class="src">${r.s}</div>
-      </div>
-    `;
-    searchRumoursPanel.appendChild(row);
-  });
+  const matches = (window.latestNews.rumours || []).filter(r => matchesClub(`${r.title} ${r.teaser}`, clubName));
+  renderNewsRows(searchRumoursPanel, 'searchCountRumours', matches, `No live rumour headlines matched for ${clubName} right now.`);
 }
 
 function resetSearchTabs(){
