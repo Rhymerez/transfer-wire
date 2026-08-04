@@ -369,6 +369,8 @@
   .rumour h4{margin:0 0 4px; font-size:15.5px; color:var(--pitch-dark);}
   .rumour p{margin:0; font-size:13.5px; color:#5c675f; line-height:1.55;}
   .rumour .src{font-size:11.5px; color:#9aa79f; margin-top:6px; font-style:italic;}
+  .rumour .src a{color:var(--turf); font-style:normal; font-weight:600; text-decoration:none;}
+  .rumour .src a:hover{text-decoration:underline;}
 
   .live-headlines{margin-top:22px; border-top:1px dashed var(--line); padding-top:16px;}
   .live-head{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--turf); font-weight:700; margin-bottom:10px;}
@@ -748,9 +750,8 @@ function renderNewsRows(el, countElId, items, emptyMsg){
     <div class="rumour">
       <div class="idx">${String(i+1).padStart(2,'0')}</div>
       <div>
-        <h4><a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none;">${item.title}</a></h4>
-        <p>${item.teaser || ""}</p>
-        <div class="src">${item.source} · ${timeAgo(item.pubDate)}</div>
+        <h4>${item.title}</h4>
+        <div class="src">${item.source} · ${timeAgo(item.pubDate)} · <a href="${item.link}" target="_blank" rel="noopener noreferrer">Read full story on ${item.source} &rarr;</a></div>
       </div>
     </div>
   `).join('');
