@@ -370,6 +370,16 @@
   .rumour p{margin:0; font-size:13.5px; color:#5c675f; line-height:1.55;}
   .rumour .src{font-size:11.5px; color:#9aa79f; margin-top:6px; font-style:italic;}
 
+  .live-headlines{margin-top:22px; border-top:1px dashed var(--line); padding-top:16px;}
+  .live-head{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--turf); font-weight:700; margin-bottom:10px;}
+  .live-head .live-sub{text-transform:none; letter-spacing:0; font-weight:400; color:#8a978d; margin-left:6px;}
+  .live-item{padding:10px 0; border-bottom:1px solid var(--line);}
+  .live-item:last-child{border-bottom:none;}
+  .live-item a{color:var(--pitch-dark); font-weight:600; font-size:14px; text-decoration:none; line-height:1.4;}
+  .live-item a:hover{color:var(--turf); text-decoration:underline;}
+  .live-item .live-meta{font-size:11px; color:#9aa79f; margin-top:3px; font-style:italic;}
+  .live-empty{font-size:13px; color:#9aa79f; font-style:italic; padding:6px 0;}
+
   footer{
     max-width:1080px; margin:40px auto 0; padding:26px 28px 50px;
     border-top:1px solid var(--line);
@@ -504,6 +514,10 @@
         <div class="count">confirmed by the clubs</div>
       </div>
       <div class="grid" id="doneGrid"></div>
+      <div class="live-headlines">
+        <div class="live-head">Live headlines <span class="live-sub">auto-pulled from BBC Sport &amp; The Guardian</span></div>
+        <div id="doneLiveList"><div class="live-empty">Loading live headlines…</div></div>
+      </div>
     </section>
 
     <section class="block" id="talks">
@@ -512,6 +526,10 @@
         <div class="count">advanced negotiations</div>
       </div>
       <div id="talksList"></div>
+      <div class="live-headlines">
+        <div class="live-head">Live headlines <span class="live-sub">auto-pulled from BBC Sport &amp; The Guardian</span></div>
+        <div id="talksLiveList"><div class="live-empty">Loading live headlines…</div></div>
+      </div>
     </section>
 
     <section class="block" id="rumours">
@@ -520,6 +538,10 @@
         <div class="count">links &amp; speculation</div>
       </div>
       <div id="rumourList"></div>
+      <div class="live-headlines">
+        <div class="live-head">Live headlines <span class="live-sub">auto-pulled from BBC Sport &amp; The Guardian</span></div>
+        <div id="rumoursLiveList"><div class="live-empty">Loading live headlines…</div></div>
+      </div>
     </section>
   </div>
 
@@ -538,11 +560,12 @@ const done = [
   {a:"WOL", from:"Wolves", to:"Ajax", name:"Tolu Arokodare", note:"Striker joins on a season-long loan with an option to buy.", fee:"Loan + option"},
   {a:"MUN", from:"Manchester United", to:"Napoli", name:"Outgoing squad player", note:"Fee reported for a departure from Old Trafford this window.", fee:"£38m"},
   {a:"AVL", from:"Aston Villa", to:"Roma", name:"Outgoing squad player", note:"Villa sanction a sale to the Italian capital.", fee:"£21.6m"},
+  {a:"CHE", from:"Brighton", to:"Chelsea", name:"Danny Welbeck", note:"Forward, 35, joins on a two-year deal to add Premier League experience to Xabi Alonso's squad.", fee:"Undisclosed"},
+  {a:"CHE", from:"Brentford", to:"Chelsea", name:"Jordan Henderson", note:"Midfielder, 36, signs a two-year contract after leaving Brentford by mutual consent.", fee:"Free"},
 ];
 
 const talks = [
   {p:"Bradley Barcola", sub:"PSG → Liverpool", pct:70, status:"Personal terms agreed", detail:"Winger has given the green light to Anfield after talks with the head coach; PSG's asking price (reportedly north of £145m) is the last hurdle before a fee is agreed."},
-  {p:"Danny Welbeck", sub:"Brighton → Chelsea", pct:85, status:"Medical stage", detail:"Fee understood to be finalised, with the forward granted permission to undergo his medical at Stamford Bridge."},
   {p:"John Stones", sub:"Manchester City → Inter Milan", pct:80, status:"Medical pending", detail:"Considered the closest of the current crop of deals to completion, contingent on the defender passing his medical."},
   {p:"Rodri", sub:"Manchester City → Real Madrid", pct:25, status:"Early talks", detail:"Real Madrid have opened discussions with City over a deal reportedly in the region of £40m, but City are said to be reluctant sellers and the player is still recovering from back surgery."},
   {p:"Sandro Tonali", sub:"Newcastle → Arsenal / Tottenham", pct:20, status:"Linked", detail:"Both London clubs have been credited with interest, adding to uncertainty over Newcastle's midfield plans for next season."},
@@ -795,7 +818,53 @@ refreshBtn.addEventListener('click', async ()=>{
     refreshBtn.classList.remove('spinning');
     refreshBtn.disabled = false;
   }
+
+  loadLiveHeadlines(true);
 });
+
+// ---- live headlines: real BBC Sport / Guardian stories, auto-classified ----
+function timeAgo(dateStr){
+  const t = new Date(dateStr).getTime();
+  if (isNaN(t)) return "";
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.round(hrs / 24)}d ago`;
+}
+
+function renderLiveList(containerId, items){
+  const el = document.getElementById(containerId);
+  if (!items || !items.length){
+    el.innerHTML = `<div class="live-empty">No matching live headlines right now — check back later.</div>`;
+    return;
+  }
+  el.innerHTML = items.map(item => `
+    <div class="live-item">
+      <a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
+      <div class="live-meta">${item.source} · ${timeAgo(item.pubDate)}</div>
+    </div>
+  `).join('');
+}
+
+async function loadLiveHeadlines(force){
+  try {
+    const res = await fetch(`/api/news${force ? '?force=true' : ''}`);
+    if (!res.ok) throw new Error(`Server responded ${res.status}`);
+    const payload = await res.json();
+    renderLiveList('doneLiveList', payload.done);
+    renderLiveList('talksLiveList', payload.talks);
+    renderLiveList('rumoursLiveList', payload.rumours);
+    if (payload.warning) console.warn("Some feeds failed:", payload.warning);
+  } catch (err) {
+    ['doneLiveList','talksLiveList','rumoursLiveList'].forEach(id=>{
+      document.getElementById(id).innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
+    });
+    console.error(err);
+  }
+}
+loadLiveHeadlines(false);
 
 // ---- club search ----
 const clubSearchInput = document.getElementById('clubSearchInput');
