@@ -139,7 +139,7 @@ async function refreshCache() {
       link: item.link,
       source: item.source,
       pubDate: item.pubDate,
-      teaser: item.description.length > 160 ? item.description.slice(0, 157) + "…" : item.description,
+      teaser: item.description.length > 250 ? item.description.slice(0, 247) + "…" : item.description,
     });
   });
 
