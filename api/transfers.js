@@ -8,9 +8,16 @@
 
 const API_KEY = process.env.API_FOOTBALL_KEY;
 const API_HOST = "https://v3.football.api-sports.io";
-const CACHE_TTL_MS = (Number(process.env.CACHE_TTL_MINUTES) || 240) * 60 * 1000;
+const CACHE_TTL_MS = (Number(process.env.CACHE_TTL_MINUTES) || 30) * 60 * 1000;
 
+// NOTE: team IDs below were recalled from general knowledge, not verified
+// live against your API key — double-check any that look wrong via:
+//   https://v3.football.api-sports.io/teams?search=ClubName
+// (with your key in the x-apisports-key header). To add a club not listed
+// here (e.g. a Nigerian NPFL side), look up its id the same way and add a
+// line in the same { id: ..., name: "..." } format.
 const TRACKED_TEAMS = [
+  // Premier League
   { id: 50, name: "Manchester City" },
   { id: 33, name: "Manchester United" },
   { id: 40, name: "Liverpool" },
@@ -18,11 +25,29 @@ const TRACKED_TEAMS = [
   { id: 42, name: "Arsenal" },
   { id: 47, name: "Tottenham" },
   { id: 34, name: "Newcastle United" },
+  { id: 48, name: "West Ham United" },
+  { id: 45, name: "Everton" },
+  { id: 66, name: "Aston Villa" },
+  { id: 51, name: "Brighton" },
+  { id: 39, name: "Wolves" },
+  // La Liga
   { id: 541, name: "Real Madrid" },
   { id: 529, name: "Barcelona" },
+  { id: 530, name: "Atletico Madrid" },
+  // Bundesliga
   { id: 157, name: "Bayern Munich" },
+  { id: 165, name: "Borussia Dortmund" },
+  { id: 168, name: "Bayer Leverkusen" },
+  // Serie A
+  { id: 496, name: "Juventus" },
+  { id: 505, name: "Inter Milan" },
+  { id: 489, name: "AC Milan" },
+  { id: 492, name: "Napoli" },
+  // Ligue 1
   { id: 85, name: "Paris Saint-Germain" },
+  { id: 81, name: "Marseille" },
 ];
+
 
 // Persists only while this function instance stays warm between requests.
 let cache = { data: null, fetchedAt: 0, lastError: null };
