@@ -122,7 +122,7 @@
   .ticker-track{
     display:inline-block;
     padding:9px 0;
-    animation:scroll 42s linear infinite;
+    animation:scroll 70s linear infinite;
   }
   .ticker-wrap:hover .ticker-track{animation-play-state:paused;}
   @keyframes scroll{
@@ -559,9 +559,13 @@ function rebuildTicker(doneRows, talksRows){
   ];
   if (!items.length){
     track.innerHTML = `<span class="tick">Transfer Wire — no live transfer data yet, checking sources…</span>`;
+    track.style.animationDuration = "20s";
     return;
   }
   track.innerHTML = items.map(tickHTML).join('') + items.map(tickHTML).join('');
+  // Scale speed to content so it stays readable regardless of how many
+  // live items loaded — roughly 6 seconds per item, floor of 30s.
+  track.style.animationDuration = `${Math.max(30, items.length * 6)}s`;
 }
 
 // ---- transfer window status (auto-advances once a window closes) ----
