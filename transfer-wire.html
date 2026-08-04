@@ -514,6 +514,10 @@
         <div class="count">confirmed by the clubs</div>
       </div>
       <div class="grid" id="doneGrid"><div class="live-empty">Loading live transfers…</div></div>
+      <div class="live-headlines">
+        <div class="live-head">Just in <span class="live-sub">confirmed-transfer headlines from BBC Sport &amp; The Guardian — often faster than the structured API</span></div>
+        <div id="doneNewsList"><div class="live-empty">Loading…</div></div>
+      </div>
     </section>
 
     <section class="block" id="talks">
@@ -736,7 +740,8 @@ function timeAgo(dateStr){
 function renderNewsRows(el, countElId, items, emptyMsg){
   if (!items || !items.length){
     el.innerHTML = `<div class="live-empty">${emptyMsg}</div>`;
-    document.getElementById(countElId).textContent = "0";
+    const countEl = countElId && document.getElementById(countElId);
+    if (countEl) countEl.textContent = "0";
     return;
   }
   el.innerHTML = items.map((item, i) => `
@@ -749,7 +754,8 @@ function renderNewsRows(el, countElId, items, emptyMsg){
       </div>
     </div>
   `).join('');
-  document.getElementById(countElId).textContent = items.length;
+  const countEl = countElId && document.getElementById(countElId);
+  if (countEl) countEl.textContent = items.length;
 }
 
 // Holds the latest news payload so club search can filter it client-side.
@@ -761,11 +767,13 @@ async function loadNews(force){
     if (!res.ok) throw new Error(`Server responded ${res.status}`);
     const payload = await res.json();
     window.latestNews = payload;
+    renderNewsRows(document.getElementById('doneNewsList'), null, payload.done, "No newly-confirmed headlines right now.");
     renderNewsRows(talksList, 'countTalks', payload.talks, "No live headlines matched as 'in talks' right now — check back soon.");
     renderNewsRows(rumourList, 'countRumours', payload.rumours, "No live rumour headlines right now — check back soon.");
     if (payload.warning) console.warn("Some feeds failed:", payload.warning);
     return payload;
   } catch (err) {
+    document.getElementById('doneNewsList').innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
     talksList.innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
     rumourList.innerHTML = `<div class="live-empty">Couldn't load live headlines right now.</div>`;
     console.error(err);
