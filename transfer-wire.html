@@ -401,6 +401,22 @@
   .live-item a:hover{color:var(--turf); text-decoration:underline;}
   .live-item .live-meta{font-size:11px; color:#9aa79f; margin-top:3px; font-style:italic;}
   .live-empty{font-size:13px; color:#9aa79f; font-style:italic; padding:6px 0;}
+  .news-search{display:flex; gap:8px; margin-bottom:14px;}
+  .news-search input{
+    flex:1; padding:9px 12px; border:1px solid var(--line); border-radius:4px;
+    font-family:'Inter',sans-serif; font-size:13.5px; background:#fff; color:var(--ink);
+  }
+  .news-search input:focus{outline:none; border-color:var(--turf);}
+  .news-search button{
+    padding:9px 16px; border:1px solid var(--pitch-dark); border-radius:4px;
+    background:var(--pitch-dark); color:var(--chalk); font-weight:600; font-size:13px;
+    cursor:pointer; white-space:nowrap;
+  }
+  .news-search button:hover{background:var(--turf); border-color:var(--turf);}
+  .news-search .news-search-clear{background:transparent; color:var(--pitch-dark); border-color:var(--line);}
+  .news-search .news-search-clear:hover{background:var(--chalk-dim);}
+  #newsSearchResults{margin-bottom:18px; padding-bottom:14px; border-bottom:1px dashed var(--line);}
+  #newsSearchResults .search-results-label{font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--turf); font-weight:700; margin-bottom:8px;}
 
   footer{
     max-width:1080px; margin:40px auto 0; padding:26px 28px 50px;
@@ -538,6 +554,12 @@
       <div class="grid" id="doneGrid"><div class="live-empty">Loading live transfers…</div></div>
       <div class="live-headlines">
         <div class="live-head">Just in <span class="live-sub">confirmed-transfer headlines from BBC Sport &amp; The Guardian — often faster than the structured API</span></div>
+        <div class="news-search">
+          <input type="text" id="newsSearchInput" placeholder="Search all live headlines (e.g. a player or club name)…" />
+          <button id="newsSearchBtn" type="button">Search</button>
+          <button id="newsSearchClearBtn" type="button" class="news-search-clear" style="display:none;">Clear</button>
+        </div>
+        <div id="newsSearchResults" style="display:none;"></div>
         <div id="doneNewsList"><div class="live-empty">Loading…</div></div>
       </div>
     </section>
@@ -836,6 +858,57 @@ refreshBtn.addEventListener('click', async ()=>{
 
 // Auto-load everything the moment the page opens — no manual step needed.
 loadEverything(false);
+
+// ---- search across ALL live headlines (Just in + In Talks + Rumour Mill) ----
+const newsSearchInput = document.getElementById('newsSearchInput');
+const newsSearchBtn = document.getElementById('newsSearchBtn');
+const newsSearchClearBtn = document.getElementById('newsSearchClearBtn');
+const newsSearchResults = document.getElementById('newsSearchResults');
+
+function runNewsSearch(){
+  const q = newsSearchInput.value.trim().toLowerCase();
+  if (!q){
+    newsSearchResults.style.display = 'none';
+    newsSearchResults.innerHTML = '';
+    newsSearchClearBtn.style.display = 'none';
+    return;
+  }
+  const all = [
+    ...(window.latestNews.done || []),
+    ...(window.latestNews.talks || []),
+    ...(window.latestNews.rumours || []),
+  ];
+  const matches = all.filter(item => item.title.toLowerCase().includes(q));
+  // De-duplicate in case the same story appears in more than one bucket
+  const seen = new Set();
+  const unique = matches.filter(item => {
+    if (seen.has(item.link)) return false;
+    seen.add(item.link);
+    return true;
+  });
+  unique.sort((a,b)=> new Date(b.pubDate) - new Date(a.pubDate));
+
+  newsSearchResults.style.display = 'block';
+  newsSearchClearBtn.style.display = 'inline-block';
+  const label = `<div class="search-results-label">${unique.length} live headline${unique.length === 1 ? '' : 's'} matching "${newsSearchInput.value.trim()}"</div>`;
+  if (!unique.length){
+    newsSearchResults.innerHTML = label + `<div class="live-empty">No live headlines mention that right now — try checking back later, or the term may just not be covered by BBC Sport/Guardian yet.</div>`;
+    return;
+  }
+  const resultsBody = document.createElement('div');
+  newsSearchResults.innerHTML = label;
+  newsSearchResults.appendChild(resultsBody);
+  renderNewsRows(resultsBody, null, unique, "");
+}
+
+newsSearchBtn.addEventListener('click', runNewsSearch);
+newsSearchInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') runNewsSearch(); });
+newsSearchClearBtn.addEventListener('click', ()=>{
+  newsSearchInput.value = '';
+  newsSearchResults.style.display = 'none';
+  newsSearchResults.innerHTML = '';
+  newsSearchClearBtn.style.display = 'none';
+});
 
 // ---- club search ----
 const clubSearchInput = document.getElementById('clubSearchInput');
